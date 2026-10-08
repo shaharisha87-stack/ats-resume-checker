@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # Gemini model
-MODEL_NAME = "gemini-3.8-flash-Lite"
+MODEL_NAME = "gemini-3.8-flash-"
 
 
 def get_api_key():
