@@ -1,1 +1,0 @@
-# ats-resume-checker
