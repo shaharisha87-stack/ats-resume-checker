@@ -1,269 +1,77 @@
- AI Resume ATS Checker
+# 🎯 Smart ATS Resume Analyzer & Job Matcher
 
-A Streamlit app that uses Gemini 2.5 Flash to review a resume and provide an estimated ATS-readiness score, strengths, formatting issues, missing keywords, and practical improvement suggestions.
+A Streamlit app that uses Google Gemini to analyze a resume, estimate how well it would fare in an Applicant Tracking System (ATS), suggest STAR-style bullet rewrites, and recommend matching job roles.
 
-Features
+> **Note:** the ATS score is an AI-generated estimate, not the output of a real ATS. It can vary slightly between runs. Use it as a guide to find gaps, not as a guarantee.
 
-Upload PDF, DOCX, or TXT resumes
+## Features
 
-Extract resume text automatically
+- **Resume parsing:** upload a `.pdf` (via `pypdf`) or `.txt` file (max 5 MB).
+- **Mode A, Resume vs. Job Description:** paste a job posting to get a targeted score, matched and missing keywords (ranked Critical / Important / Nice-to-have), and tailored rewrites.
+- **Mode B, General Audit:** leave the job description empty to get a standalone audit (structure, impact metrics, formatting) plus realistic matching roles.
+- **Matching roles:** titles, seniority fit, skills you have vs. skills to learn, and next steps.
+- **Dashboard:** metrics row, colored score bar, and three tabs (Score & Keywords, Improvements, Job Roles).
+- **Export:** download the full analysis as a Markdown report.
+- **Error handling:** empty, corrupt, encrypted or scanned PDFs, missing or invalid API keys, and quota or outage errors all show friendly messages.
 
-Generate an estimated ATS score out of 100
+## Project structure
 
-Show an ATS breakdown for:
-
-Readability
-
-Keyword alignment
-
-Section structure
-
-Skills
-
-Experience
-
-Education
-
-Identify ATS-unfriendly formatting/structure issues
-
-Suggest specific resume improvements
-
-Optionally compare the resume with a target job description
-
-Use Gemini structured JSON output for reliable results
-
-Ready for deployment on Streamlit Community Cloud
-
-Important: ATS scores are estimates. Different Applicant Tracking Systems use different rules, so the score cannot guarantee that a resume will pass a real employer's screening system.
-
-1. Project structure
-
-ai-resume-ats-checker/
-├── app.py
-├── requirements.txt
+```
+ats-resume-analyzer/
+├── app.py                # Streamlit application
+├── requirements.txt      # Python dependencies
+├── DEPLOYMENT_GUIDE.md   # GitHub web UI + Streamlit Cloud steps
 └── README.md
+```
 
-2. Get a Gemini API key
+## Run locally
 
-Create a Gemini API key through Google AI Studio.
+1. Install Python 3.10+.
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Get a free Gemini API key at https://aistudio.google.com/apikey.
+4. Provide the key in one of two ways:
+   - **Secrets file:** create `.streamlit/secrets.toml` containing:
+     ```toml
+     GEMINI_API_KEY = "your-key-here"
+     ```
+   - **Sidebar:** paste the key into the sidebar field when the app runs.
+5. Start the app:
+   ```bash
+   streamlit run app.py
+   ```
 
-Do not put the API key directly into app.py, README.md, or GitHub.
+Add `.streamlit/secrets.toml` to `.gitignore` if you use git. **Never commit your API key.**
 
-For local testing, you can use an environment variable:
+## Deploy
 
-Windows PowerShell
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for step-by-step instructions to publish on GitHub through the web UI and deploy free on Streamlit Community Cloud.
 
-$env:GEMINI_API_KEY="YOUR_API_KEY"
-streamlit run app.py
+## Models
 
-You can also use Streamlit Secrets locally with:
+The app tries `gemini-3.8-flash` first, then `gemini-3.6-flash` and `gemini-3.5-flash-lite` if a model is unavailable, overloaded or rate-limited. Each model gets one retry on 500/503 errors.
 
-.streamlit/
-└── secrets.toml
+Google retires Gemini models frequently (`gemini-2.0-flash` and new-user access to `gemini-2.5-flash` are already gone). If you get 404 errors, either edit `MODEL_CHAIN` at the top of `app.py`, or type a current model ID into the sidebar's **Model override** field. Check https://ai.google.dev/gemini-api/docs/models for current IDs.
 
-secrets.toml:
+## Limitations
 
-GEMINI_API_KEY = "YOUR_API_KEY"
+- Scanned or image-only PDFs can't be read (real ATS software can't read them either). Export a text-based PDF instead.
+- Very long inputs are truncated to about 30,000 characters.
+- Output quality depends on the model. Check every suggested rewrite against your real experience, and replace `[X%]`-style placeholders with true numbers. Never claim results you can't back up.
+- Free-tier Gemini quotas are limited and may block heavy use.
 
-Do not upload secrets.toml to GitHub.
+## Privacy
 
-3. Install and run locally
-Make sure Python is installed.
+Resume and job-description text is sent to Google's Gemini API for processing. On Google's free API tier, submitted content may be used to improve their products. Remove sensitive personal details before uploading, and tell any other users of your deployment about this.
 
-Create a virtual environment:
+## Tech stack
 
-python -m venv .venv
+[Streamlit](https://streamlit.io) · [google-genai](https://pypi.org/project/google-genai/) · [pypdf](https://pypi.org/project/pypdf/)
 
-Activate it on Windows:
+## License
 
-.venv\Scripts\activate
+Choose a license for your repository (for example MIT) and add a `LICENSE` file.
 
-Install dependencies:
 
-pip install -r requirements.txt
-
-Run:
-
-streamlit run app.py
-
-The app will open in your browser.
-
-4. How the app works
-
-Resume Upload
-      ↓
-PDF / DOCX / TXT text extraction
-      ↓
-Clean extracted text
-      ↓
-Optional Job Description
-      ↓
-Gemini 2.5 Flash
-      ↓
-Structured JSON analysis
-      ↓
-ATS Score + Breakdown
-      ↓
-Strengths + Issues + Improvements
-
-The app does not claim to reproduce a proprietary ATS. Gemini evaluates ATS-readiness using common resume parsing and screening principles.
-
-5. Push the project to GitHub using the UI
-
-You can do this without Git commands.
-
-Step 1 — Create a repository
-
-Go to GitHub and sign in.
-
-Click:
-
-+ → New repository
-
-Use a name such as:
-
-ai-resume-ats-checker
-
-Choose Public if you want the easiest Streamlit Community Cloud setup.
-
-Click:
-
-Create repository
-
-Step 2 — Upload the three files
-
-Inside your new repository:
-
-Add file → Upload files
-
-Upload:
-
-app.py
-requirements.txt
-README.md
-
-Then click:
-
-Commit changes
-
-Your repository should look like:
-
-ai-resume-ats-checker
-│
-├── app.py
-├── requirements.txt
-└── README.md
-
-Step 3 — Never upload your API key
-
-Do not upload:
-
-.streamlit/secrets.toml
-
-with your real API key.
-
-6. Deploy on Streamlit Community Cloud
-
-Go to Streamlit Community Cloud and sign in with GitHub.
-
-Click:
-
-Create app
-
-Select:
-
-Repository: your-username/ai-resume-ats-checker
-
-Branch: main
-
-Main file path: app.py
-
-Then open Advanced settings.
-
-In Secrets, enter:
-
-GEMINI_API_KEY = "YOUR_API_KEY"
-
-Choose a supported Python version, preferably the same Python version you tested locally.
-
-Click:
-
-Deploy
-
-Streamlit will install the packages from requirements.txt and start app.py.
-
-Your app will receive a URL similar to:
-
-https://your-app-name.streamlit.app
-
-7. Updating the deployed app
-
-When you change app.py:
-
-Open your GitHub repository.
-
-Open app.py.
-
-Click the pencil/edit button.
-
-Make your changes.
-
-Click Commit changes.
-
-Streamlit Community Cloud watches the GitHub repository and normally redeploys after repository changes.
-
-8. Common problems
-
-Gemini API key not found
-
-Check that the secret is named exactly:
-
-GEMINI_API_KEY = "YOUR_API_KEY"
-
-ModuleNotFoundError
-
-Make sure the package is listed in requirements.txt.
-
-Then redeploy the app.
-
-Resume text is empty
-
-The PDF may be scanned/image-only. This version works best with text-based PDFs and DOCX files.
-
-Gemini analysis fails
-
-Check:
-
-API key is valid
-
-Gemini API access is available
-
-The app has internet access
-
-Your API quota has not been exceeded
-
-9. Future improvements
-
-Good next features for this project:
-
-Resume vs job-description keyword matching
-
-Downloadable improvement report
-
-Resume rewriting suggestions
-
-Skill-gap analysis
-
-Job-specific resume recommendations
-
-LinkedIn profile checklist
-
-Before/after ATS score comparison
-
-History of previous analyses
-
-Better handling of scanned PDFs with OCR
-
-License
-
-You can use and modify this project for learning and portfolio purposes.
